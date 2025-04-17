@@ -1,0 +1,16 @@
+timeit(function(){
+var  loop1 = function(r,y,n0) {
+  if (Math.abs(y)>=1||n0>100 ) {
+    condition(n0>=3)
+    return r
+  } else {
+    var n1=n0+1
+    var y= gaussian({mu:  y, sigma: 2*r})
+    return loop1(r,y,n1)
+  }
+    }
+   
+
+var track = function(){return loop1(uniform(0,1),0,0);}  // start tracking
+var dist= Infer({method:'SMC', particles:100000},track)
+expectation(dist)})

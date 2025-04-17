@@ -1,0 +1,26 @@
+timeit(function(){
+var  loop3 = function(prob,cc,est,z,n0) {
+  var n1=n0+1
+  var app=((n1<100)) ? 1 : 0
+  if (est==1||n0>99||cc>99||z>1 ) {
+    return prob*app
+  } else {
+    var flag = bernoulli ({p: prob});
+    var est = (flag==false& z>0) ? 1 : est
+    var z = (z>0) ? 0 : z
+   
+    var flag2 = bernoulli ({p: 0.5});
+    var cc=(flag2==true& z<1) ? cc+1 : cc
+    var cc=(flag2==false& z<1) ? 0 : cc
+    var z=(flag2==false& z<1) ? 1 : z
+    if (flag2==false & z<1) {
+        condition(cc>20)
+  }
+    return loop3(prob,cc,est,z,n1)
+  }
+    }
+   
+
+var track = function(){return loop3(uniform(0.,1.),0,0,1,0);}  // start tracking
+var dist= Infer({method:'SMC', particles:1000000},track)
+expectation(dist)})

@@ -1,0 +1,73 @@
+timeit(function(){
+// ** Aircraft tracking example from Wu et al. 2018 **
+var rad_x =  [0.0, 3.0, 1.5, 5.0, 6.0, 5.6]      // x,y coordinates of 6 radars
+var rad_y =  [0.0, 0.0, -1.5, 1.3, -4.0,-3.0]
+var radius = [2.0, 2.0, 2.0, 3.0, 4.0, 2.0]     // radii of the radars
+var radius_sq = [4.0, 4.0, 4.0, 9.0, 16.0, 4.0]     // squared radii
+
+var Obs = [                                   // Obs[i,j]= observed distance at time i from radar j
+    [2.0, 1.80278, 0.5, 3.0, 4.0, 2.0],
+    [1.5, 1.5, 1.5, 3.0, 4.0, 2.0],
+    [1.65529, 1.65529, 2.0, 3.0, 4.0, 2.0],
+    [2.0, 1.0, 2.0, 2.88617, 4.0, 2.0],
+    [2.0, 0.70711, 1.78885, 2.75862, 4.0, 2.0],
+    [2.0, 1.78885, 2.0, 3.0, 3.25576, 2.0],
+    [2.0, 2.0, 2.0, 2.84429, 2.54951, 1.50333],
+    [2.0, 2.0, 2.0, 2.75862, 3.54401, 2.0]
+]
+
+var Obssq = [                              // elementwise squared of the above
+    [4.0, 3.2485, 0.25, 9.0, 16.0, 4.0],
+    [2.25, 2.25, 2.25, 9.0, 16.0, 4.0],
+    [2.7396, 2.7396, 4.0, 9.0, 16.0, 4.0],
+    [4.0, 1.0, 4.0, 8.3043, 16.0, 4.0],
+    [4.0, 0.499997, 3.196, 7.6004, 16.0, 4.0],
+    [4.0, 3.196, 4.0, 9.0, 10.567, 4.0],
+    [4.0, 4.0, 4.0, 8.0961, 6.4995, 2.2600],
+    [4.0, 4.0, 4.0, 7.6004, 12.558, 4.0]
+]
+
+//Ground truth for aircraft trajectory, from Wu et al. 2018
+//X = [2,    1.5, 1.5,  2.2,  3.1,  3.8,   5.5,   7]
+//Y = [-1.5, 0,   0.7,  0.6, -0.7,  -1.6, -1.5, -0.6]
+
+// * auxiliary function to sample from truncated gaussian 
+
+var trunc_gauss_Rob = function(a,b){    // Robert's AR for truncated gaussian (mu=0,sigma=1)
+  var Z = uniform({a:a, b:b})
+  var U = uniform({a:0, b:1});
+  var th = (a*b<0) ? Math.exp(-Z*Z/2) : ((b<0) ? Math.exp((b*b-Z*Z)/2) : Math.exp((a*a-Z*Z)/2) )
+  if ( U<=th)
+    return Z
+  else
+    return trunc_gauss_Rob(a,b)
+}
+
+// * aircraft tracking cycle *
+
+var k = 8 // n. of steps to be tracked, 1<= k <=8
+var stddev = 0.1;
+
+var check_radars=function(i,j,x,y){  // checks all 6 radars at time i
+if (j>5) return 0;
+var d0 = Math.pow(x-rad_x[j],2)+Math.pow(y-rad_y[j],2);  // true squared distance
+var obs_dist0 = (d0 > radius_sq[j]) ? (flip(.999)? (radius[j]) : radius[j]+0.001*trunc_gauss_Rob(0,radius[j])) :  Math.sqrt(d0)+stddev*trunc_gauss_Rob(0,radius[j]);
+//condition(obs_dist0==2.0);
+factor(Gaussian({mu:obs_dist0,sigma:.01}).score(Obs[i][j]));
+return check_radars(i,j+1,x,y)
+}
+
+var aircraft_tracking=function(x,y, time, k) {
+if (time>=k) return x; //return y
+var x = (time==0) ? gaussian({mu:  2, sigma: 1}) : gaussian({mu: x, sigma: 2});
+var y = (time==0) ? gaussian({mu: -1.5, sigma: 1}) : gaussian({mu: y, sigma: 2});
+var ch = check_radars(time,0,x,y);
+
+return aircraft_tracking(x,y, time+1,k) // next step in tracking
+}
+
+var track = function(){return aircraft_tracking(0,0, 0, k);}  // start tracking
+
+var dist = Infer({method:'SMC', particles:100000},track)
+expectation(dist)
+})

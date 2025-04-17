@@ -1,0 +1,21 @@
+timeit(function(){
+var  loop3 = function(r,j,i,y,prob) {
+var i= i+1;
+var y1=0;
+if (i>100){
+  return y
+}else{
+     var j=j+1
+     var y0=gaussian({mu:  y, sigma: 2*r})
+     var flag=bernoulli({p: prob});
+     if(flag==true){
+      condition(Math.abs(y-y0)<2)
+     }
+     return loop3(r,j,i,y0,prob)
+}}
+
+
+var track = function(){return loop3(uniform(0.,7.),0,0,1,0.5);}  // start tracking
+var dist= Infer({method:'SMC', particles:1000000},track)
+
+expectation(dist) })
