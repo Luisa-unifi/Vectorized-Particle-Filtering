@@ -21,7 +21,6 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 tfd = tfp.distributions
 
-
 n_iter=1000
 @tf.function(input_signature=[tf.TensorSpec(shape=None, dtype=tf.float32)]*12) 
 def dmm(xx,yy,dd,rr,tt,SS,W,ZERO,ONE,SEVEN,ZZ,ones):  #with resampling
