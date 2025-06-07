@@ -16,6 +16,7 @@ https://github.com/tensorflow/tensorflow/blob/master/
 tensorflow/python/autograph/g3doc/reference/index.md.
 """
 
+
 import time
 import tensorflow as tf
 import tensorflow_probability as tfp
