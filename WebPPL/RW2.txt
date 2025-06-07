@@ -17,5 +17,4 @@ if (i>100){
 
 var track = function(){return loop3(uniform(0.,7.),0,0,1,0.5);}  // start tracking
 var dist= Infer({method:'SMC', particles:1000000},track)
-
 expectation(dist) })
