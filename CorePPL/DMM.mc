@@ -8,7 +8,6 @@ let model: () -> Float = lam.
   let n0 = 0 in
 
   
-  
    
    
   recursive let fact: Int -> Float -> Float -> Float -> Float -> Float =
